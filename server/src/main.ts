@@ -6,6 +6,8 @@ import * as fs from "fs";
 import http from "node:http";
 import https from "node:https";
 
+console.log("IN PROG")
+
 const __PRODUCTION__ = process.env.PRODUCTION === "Y";
 
 const SSL_KEY = fs.readFileSync(process.env.SSL_KEY ?? path.resolve(__dirname, "../key.pem"));
@@ -31,4 +33,5 @@ server.listen(PORT, () => {
   if (__PRODUCTION__) console.log("App listening on port", PORT);
   else console.log(`App listening at http://localhost:3001`);
 });
+
 
