@@ -88,8 +88,8 @@ const App = () => {
     ${styles["p-6"]} ${styles["gap-3"]} ${styles["flex-col"]} ${styles["h-svh"]} ${styles["w-svw"]}`}>
       {/* Header */}
       <div className={`${styles["flex"]} ${styles["flex-col"]} ${styles["justify-center"]} ${styles["items-center"]}`}>
-        <h1 className={`${styles["text-3xl"]} ${styles["font-bold"]} ${styles["text-center"]}`}>5x5 Matrix Visualizer</h1>
-        <span>Click each number to edit</span>
+        <h1 className={`${styles["text-3xl"]} ${styles["font-bold"]} ${styles["text-center"]} ${styles["text-black"]}`}>5x5 Matrix Visualizer</h1>
+        <span className={`${styles["text-black"]}`}>Click each number to edit</span>
       </div>
       {/* Edit */}
       <div className={`${styles["flex"]} ${styles["w-full"]} ${styles["items-center"]}

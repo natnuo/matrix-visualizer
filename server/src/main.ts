@@ -12,7 +12,7 @@ const __PRODUCTION__ = process.env.PRODUCTION === "Y";
 
 const SSL_KEY = fs.readFileSync(process.env.SSL_KEY ?? path.resolve(__dirname, "../key.pem"));
 const SSL_CERT = fs.readFileSync(process.env.SSL_CERT ?? path.resolve(__dirname, "../cert.pem"));
-const PORT = __PRODUCTION__ ? 3000 : 3001;
+const PORT = __PRODUCTION__ ? 443 : 3001;
 
 const app = express();
 
