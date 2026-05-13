@@ -1,0 +1,244 @@
+:root {
+  --bg: #fafafa;
+  --surface: #ececec;
+  --surface-elevated: #f0f0f0;
+  --text: #1a1a1a;
+  --muted: #5c5c5c;
+  --grid-line: #e0e0e0;
+  --matrix-border: #1a1a1a;
+  --btn: #e4e4e4;
+  --btn-hover: #d8d8d8;
+  --btn-strong: #d0d0d0;
+  --btn-strong-hover: #c4c4c4;
+  --focus-ring: #404040;
+  --tile-hover-ring: #e6c200;
+  --font: "Roboto", system-ui, -apple-system, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  min-height: 100dvh;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.45;
+}
+
+.app {
+  max-width: 960px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  padding: calc(0.65rem + 8px) 1rem calc(0.5rem + 16px);
+  display: flex;
+  flex-direction: column;
+}
+
+.app-chrome {
+  flex-shrink: 0;
+  text-align: center;
+}
+
+.header {
+  margin-bottom: 0.4rem;
+}
+
+.header h1 {
+  margin: 0 0 0.15rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.875rem;
+  line-height: 1.35;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.35rem 0 0;
+  background: transparent;
+  margin-bottom: 0.25rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  align-items: center;
+}
+
+.field label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.field input[type="number"] {
+  width: 4.5rem;
+  padding: 0.35rem 0.45rem;
+  border: none;
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.field input[type="number"]:focus {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 0;
+}
+
+.btn {
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  padding: 0.4rem 0.85rem;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.btn-primary {
+  background: var(--btn-strong);
+  color: var(--text);
+}
+
+.btn-primary:hover {
+  background: var(--btn-strong-hover);
+}
+
+.btn-secondary {
+  background: var(--btn);
+  color: var(--text);
+}
+
+.btn-secondary:hover {
+  background: var(--btn-hover);
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 2rem;
+  background: var(--grid-line);
+  margin: 0 0.1rem;
+}
+
+.status {
+  min-height: 1.1rem;
+  margin: 0 0 0.35rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+.matrix-viewport {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.matrix-wrap {
+  box-sizing: content-box;
+  flex-shrink: 0;
+  border: 2px solid var(--matrix-border);
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.matrix {
+  display: grid;
+  gap: 0;
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+.cell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  box-shadow: none;
+  transition: box-shadow 0.12s ease;
+}
+
+.cell:hover {
+  box-shadow: inset 0 0 0 1px var(--tile-hover-ring);
+  z-index: 1;
+}
+
+.cell input {
+  flex: 1 1 auto;
+  align-self: stretch;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  border: none;
+  margin: 0;
+  padding: 0.25rem 0.3rem;
+  font-family: inherit;
+  font-size: clamp(0.65rem, 2.2vmin, 0.95rem);
+  text-align: center;
+  background: transparent;
+  color: inherit;
+  -moz-appearance: textfield;
+  outline: none;
+  box-shadow: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cell input:focus,
+.cell input:focus-visible,
+.cell input:active {
+  outline: none;
+  box-shadow: none;
+}
+
+.cell input::-webkit-outer-spin-button,
+.cell input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.cell input::placeholder {
+  color: color-mix(in srgb, currentColor 42%, transparent);
+}
+
+@media (max-width: 520px) {
+  .toolbar-divider {
+    display: none;
+  }
+}
