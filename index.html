@@ -17,7 +17,7 @@
       <div class="app-chrome">
         <header class="header">
           <h1>Matrix visualizer</h1>
-          <p class="subtitle">
+          <p id="subtitle" class="subtitle">
             Edit values from 0.0 (black) to 1.0 (white). Grid size up to 10×10.
           </p>
         </header>
@@ -34,6 +34,24 @@
           <button type="button" id="apply-size" class="btn btn-secondary">
             Apply size
           </button>
+          <div class="toolbar-divider" role="presentation"></div>
+          <div class="field field-toggle">
+            <span class="toggle-label">Input mode</span>
+            <div class="mode-toggle" role="group" aria-label="Input mode">
+              <span id="mode-grayscale-label" class="mode-toggle__option is-active">Grayscale</span>
+              <label class="switch">
+                <input
+                  type="checkbox"
+                  id="toggle-mode"
+                  aria-labelledby="mode-grayscale-label mode-color-label"
+                />
+                <span class="switch__track" aria-hidden="true">
+                  <span class="switch__thumb"></span>
+                </span>
+              </label>
+              <span id="mode-color-label" class="mode-toggle__option">Color</span>
+            </div>
+          </div>
           <div class="toolbar-divider" role="presentation"></div>
           <button type="button" id="export-png" class="btn btn-primary">
             Download PNG

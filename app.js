@@ -16,11 +16,18 @@
   const applyBtn = document.getElementById("apply-size");
   const exportPngBtn = document.getElementById("export-png");
   const exportClipboardBtn = document.getElementById("export-clipboard");
+  const toggleModeInput = document.getElementById("toggle-mode");
+  const modeGrayscaleLabel = document.getElementById("mode-grayscale-label");
+  const modeColorLabel = document.getElementById("mode-color-label");
+  const subtitleEl = document.getElementById("subtitle");
   const statusEl = document.getElementById("status");
 
   if (!matrixEl || !matrixWrap || !rowsInput || !colsInput || !applyBtn || !statusEl) {
     return;
   }
+
+  /** @type {'grayscale' | 'color'} */
+  let inputMode = "grayscale";
 
   let fitDebounceTimer = 0;
 
@@ -65,6 +72,8 @@
 
   /** @type {number[][]} */
   let values = [];
+  /** @type {string[][]} */
+  let colors = [];
 
   function clampDim(n) {
     const x = Math.round(Number(n));
@@ -102,6 +111,28 @@
     return `rgb(${g},${g},${g})`;
   }
 
+  function normalizeHex(str) {
+    let t = String(str).trim().toUpperCase();
+    if (t.startsWith("#")) t = t.slice(1);
+    if (!/^[0-9A-F]{3}$|^[0-9A-F]{6}$/.test(t)) return null;
+    if (t.length === 3) {
+      t = t[0] + t[0] + t[1] + t[1] + t[2] + t[2];
+    }
+    return "#" + t;
+  }
+
+  function formatHex(hex) {
+    return normalizeHex(hex) || "#000000";
+  }
+
+  function textColorForHex(hex) {
+    const h = formatHex(hex).slice(1);
+    const r = parseInt(h.slice(0, 2), 16);
+    const g = parseInt(h.slice(2, 4), 16);
+    const b = parseInt(h.slice(4, 6), 16);
+    return 0.299 * r + 0.587 * g + 0.114 * b > 140 ? "#0a0a0a" : "#f5f5f5";
+  }
+
   function setStatus(msg, isError) {
     statusEl.textContent = msg || "";
     statusEl.style.color = isError ? "#f0a8a8" : "";
@@ -115,27 +146,61 @@
   }
 
   function resizeGrid(newRows, newCols) {
-    const next = [];
+    const nextValues = [];
+    const nextColors = [];
     for (let r = 0; r < newRows; r++) {
-      next[r] = [];
+      nextValues[r] = [];
+      nextColors[r] = [];
       for (let c = 0; c < newCols; c++) {
-        const old = values[r] && values[r][c];
-        next[r][c] = old !== undefined ? clamp01(old) : 0;
+        const oldV = values[r] && values[r][c];
+        const oldC = colors[r] && colors[r][c];
+        nextValues[r][c] = oldV !== undefined ? clamp01(oldV) : 0;
+        nextColors[r][c] = oldC !== undefined ? formatHex(oldC) : "#000000";
       }
     }
-    values = next;
+    values = nextValues;
+    colors = nextColors;
     rowsInput.value = String(newRows);
     colsInput.value = String(newCols);
   }
 
-  function syncCellStyle(input, v) {
+  function syncCellStyleGrayscale(input, v) {
     const val = clamp01(v);
     const cell = input.closest(".cell");
     cell.style.backgroundColor = grayRgb(val);
     input.style.color = textColorForValue(val);
-    const shown = formatValue(val);
     if (document.activeElement !== input) {
-      input.value = shown;
+      input.value = formatValue(val);
+    }
+  }
+
+  function syncCellStyleColor(input, hex) {
+    const color = formatHex(hex);
+    const cell = input.closest(".cell");
+    cell.style.backgroundColor = color;
+    input.style.color = textColorForHex(color);
+    if (document.activeElement !== input) {
+      input.value = color;
+    }
+  }
+
+  function updateModeUI() {
+    const isColor = inputMode === "color";
+    if (toggleModeInput) {
+      toggleModeInput.checked = isColor;
+    }
+    if (modeGrayscaleLabel) {
+      modeGrayscaleLabel.classList.toggle("is-active", !isColor);
+    }
+    if (modeColorLabel) {
+      modeColorLabel.classList.toggle("is-active", isColor);
+    }
+    document.body.classList.toggle("input-mode-color", isColor);
+    if (subtitleEl) {
+      subtitleEl.textContent =
+        inputMode === "grayscale"
+          ? "Edit values from 0.0 (black) to 1.0 (white). Grid size up to 10×10."
+          : "Edit hex colors (#RGB or #RRGGBB). Grid size up to 10×10.";
     }
   }
 
@@ -152,7 +217,7 @@
 
         const input = document.createElement("input");
         input.type = "text";
-        input.inputMode = "decimal";
+        input.inputMode = inputMode === "grayscale" ? "decimal" : "text";
         input.autocomplete = "off";
         input.spellcheck = false;
         input.setAttribute("aria-label", `Row ${r + 1}, column ${c + 1}`);
@@ -161,25 +226,41 @@
 
         cell.appendChild(input);
 
-        const v = values[r][c];
-        input.value = formatValue(v);
-        syncCellStyle(input, v);
+        if (inputMode === "grayscale") {
+          input.value = formatValue(values[r][c]);
+          syncCellStyleGrayscale(input, values[r][c]);
+        } else {
+          input.value = formatHex(colors[r][c]);
+          syncCellStyleColor(input, colors[r][c]);
+        }
 
         input.addEventListener("focus", () => {
-          input.value = "";
+          input.value = inputMode === "grayscale" ? "" : "#";
         });
 
         input.addEventListener("blur", () => {
           const raw = String(input.value).trim();
-          if (raw === "") {
-            input.value = formatValue(values[r][c]);
-            syncCellStyle(input, values[r][c]);
+          if (inputMode === "grayscale") {
+            if (raw === "") {
+              syncCellStyleGrayscale(input, values[r][c]);
+              return;
+            }
+            const parsed = parseInput(input.value);
+            values[r][c] = parsed;
+            syncCellStyleGrayscale(input, parsed);
             return;
           }
-          const parsed = parseInput(input.value);
-          values[r][c] = parsed;
-          input.value = formatValue(parsed);
-          syncCellStyle(input, parsed);
+          if (raw === "" || raw === "#") {
+            syncCellStyleColor(input, colors[r][c]);
+            return;
+          }
+          const parsed = normalizeHex(raw);
+          if (!parsed) {
+            syncCellStyleColor(input, colors[r][c]);
+            return;
+          }
+          colors[r][c] = parsed;
+          syncCellStyleColor(input, parsed);
         });
 
         input.addEventListener("keydown", (e) => {
@@ -189,18 +270,33 @@
         });
 
         input.addEventListener("input", () => {
-          const t = String(input.value).trim().replace(",", ".");
-          if (t === "" || t === "-" || t === "." || t === "-.") {
-            syncCellStyle(input, values[r][c]);
+          if (inputMode === "grayscale") {
+            const t = String(input.value).trim().replace(",", ".");
+            if (t === "" || t === "-" || t === "." || t === "-.") {
+              syncCellStyleGrayscale(input, values[r][c]);
+              return;
+            }
+            const n = parseFloat(t);
+            if (!Number.isFinite(n)) {
+              syncCellStyleGrayscale(input, values[r][c]);
+              return;
+            }
+            values[r][c] = clamp01(n);
+            syncCellStyleGrayscale(input, values[r][c]);
             return;
           }
-          const n = parseFloat(t);
-          if (!Number.isFinite(n)) {
-            syncCellStyle(input, values[r][c]);
+          const t = String(input.value).trim();
+          if (t === "" || t === "#") {
+            syncCellStyleColor(input, colors[r][c]);
             return;
           }
-          values[r][c] = clamp01(n);
-          syncCellStyle(input, values[r][c]);
+          const parsed = normalizeHex(t);
+          if (!parsed) {
+            syncCellStyleColor(input, colors[r][c]);
+            return;
+          }
+          colors[r][c] = parsed;
+          syncCellStyleColor(input, parsed);
         });
 
         matrixEl.appendChild(cell);
@@ -245,15 +341,41 @@
     return canvas;
   }
 
+  function renderColorCanvas(cellPx) {
+    const { rows, cols } = getDims();
+    const w = cols * cellPx;
+    const h = rows * cellPx;
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return canvas;
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        ctx.fillStyle = formatHex(colors[r][c]);
+        ctx.fillRect(c * cellPx, r * cellPx, cellPx, cellPx);
+      }
+    }
+    return canvas;
+  }
+
+  function renderCanvas(cellPx) {
+    return inputMode === "grayscale"
+      ? renderGrayscaleCanvas(cellPx)
+      : renderColorCanvas(cellPx);
+  }
+
   function downloadPng() {
     const cellPx = 48;
-    const canvas = renderGrayscaleCanvas(cellPx);
+    const canvas = renderCanvas(cellPx);
     const link = document.createElement("a");
     const { rows, cols } = getDims();
-    link.download = `matrix-${rows}x${cols}-grayscale.png`;
+    const kind = inputMode === "grayscale" ? "grayscale" : "color";
+    link.download = `matrix-${rows}x${cols}-${kind}.png`;
     link.href = canvas.toDataURL("image/png");
     link.click();
-    setStatus("PNG downloaded (grayscale, no labels).");
+    setStatus(`PNG downloaded (${kind}, no labels).`);
   }
 
   async function copyImageToClipboard() {
@@ -269,7 +391,7 @@
     }
 
     const cellPx = 48;
-    const canvas = renderGrayscaleCanvas(cellPx);
+    const canvas = renderCanvas(cellPx);
 
     try {
       const blob = await new Promise((resolve, reject) => {
@@ -282,7 +404,8 @@
       await navigator.clipboard.write([
         new ClipboardItem({ "image/png": blob }),
       ]);
-      setStatus("Grayscale image copied to clipboard.");
+      const kind = inputMode === "grayscale" ? "Grayscale" : "Color";
+      setStatus(`${kind} image copied to clipboard.`);
     } catch (err) {
       setStatus(
         "Could not copy image (permission or browser restriction). Try Download PNG.",
@@ -292,6 +415,14 @@
   }
 
   applyBtn.addEventListener("click", applySize);
+  if (toggleModeInput) {
+    toggleModeInput.addEventListener("change", () => {
+      inputMode = toggleModeInput.checked ? "color" : "grayscale";
+      updateModeUI();
+      buildGrid();
+      setStatus("");
+    });
+  }
   if (exportPngBtn) exportPngBtn.addEventListener("click", downloadPng);
   if (exportClipboardBtn) {
     exportClipboardBtn.addEventListener("click", () => {
@@ -312,5 +443,6 @@
   }
 
   resizeGrid(DEFAULT_ROWS, DEFAULT_COLS);
+  updateModeUI();
   buildGrid();
 })();

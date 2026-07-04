@@ -39,7 +39,7 @@ body {
   max-width: 960px;
   margin: 0 auto;
   min-height: 100dvh;
-  padding: calc(0.65rem + 8px) 1rem calc(0.5rem + 16px);
+  padding: calc(0.65rem + 8px) 1rem;
   display: flex;
   flex-direction: column;
 }
@@ -137,6 +137,83 @@ body {
   background: var(--btn-hover);
 }
 
+.field-toggle {
+  gap: 0.25rem;
+}
+
+.toggle-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2rem;
+}
+
+.mode-toggle__option {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--muted);
+  transition: color 0.15s ease;
+  user-select: none;
+}
+
+.mode-toggle__option.is-active {
+  color: var(--text);
+}
+
+.switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.switch input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch__track {
+  display: block;
+  width: 2.5rem;
+  height: 1.25rem;
+  background: var(--surface);
+  border: 2px solid var(--grid-line);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.switch__thumb {
+  display: block;
+  width: 0.85rem;
+  height: 0.85rem;
+  margin: 0.1rem;
+  background: var(--muted);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.switch input:checked + .switch__track {
+  background: var(--btn-strong);
+  border-color: var(--matrix-border);
+}
+
+.switch input:checked + .switch__track .switch__thumb {
+  transform: translateX(1.25rem);
+  background: var(--text);
+}
+
+.switch input:focus-visible + .switch__track {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 .toolbar-divider {
   width: 1px;
   height: 2rem;
@@ -218,6 +295,10 @@ body {
   outline: none;
   box-shadow: none;
   -webkit-tap-highlight-color: transparent;
+}
+
+body.input-mode-color .cell input {
+  letter-spacing: 0.35px;
 }
 
 .cell input:focus,
